@@ -8,6 +8,7 @@ from src.personas.motor_predictivo import simular_riesgos, orientacion_cobertura
 
 st.set_page_config(page_title="PRISMA AI | Personas", page_icon="🧭", layout="wide")
 st.title("PRISMA AI — Evaluación integral de riesgos personales")
+st.info("Nuevo módulo de salud v0.7 disponible: ejecuta `python -m streamlit run app_salud.py --server.address 0.0.0.0 --server.port 8501` después de detener esta aplicación.")
 st.warning(
     "DEMOSTRACIÓN CON TASAS HIPOTÉTICAS: los porcentajes son simulaciones matemáticas, "
     "NO probabilidades reales validadas. No utilizar para aceptar, rechazar, tarifar "
