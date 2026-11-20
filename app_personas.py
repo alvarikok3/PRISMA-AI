@@ -1,16 +1,18 @@
-"""PRISMA AI v0.5 — evaluación personal exploratoria.
+"""PRISMA AI v0.6 — simulación de escenarios personales.
 
-No se calculan probabilidades de accidentes, salud, crédito o seguros.
+Se calculan porcentajes de escenarios hipotéticos, no riesgos actuariales reales.
 """
 import streamlit as st
 from src.personas.evaluador import CATEGORIAS, evaluar_perfil
+from src.personas.motor_predictivo import simular_riesgos, orientacion_coberturas
 
 st.set_page_config(page_title="PRISMA AI | Personas", page_icon="🧭", layout="wide")
 st.title("PRISMA AI — Evaluación integral de riesgos personales")
 st.warning(
-    "Prototipo educativo: identifica exposiciones y suficiencia de datos. "
-    "No predice acontecimientos reales ni debe usarse para decisiones sobre seguros, "
-    "empleo, crédito o salud. No introduzcas datos reales sensibles."
+    "DEMOSTRACIÓN CON TASAS HIPOTÉTICAS: los porcentajes son simulaciones matemáticas, "
+    "NO probabilidades reales validadas. No utilizar para aceptar, rechazar, tarifar "
+    "o excluir coberturas de seguros, ni para decisiones laborales o médicas. "
+    "Introduce únicamente perfiles ficticios."
 )
 
 st.subheader("1. Perfil general (utiliza datos ficticios)")
@@ -19,7 +21,7 @@ ocupacion = st.selectbox(
     "Ocupación", ["Oficina", "Salud", "Conducción", "Industria", "Deporte", "Otra"]
 )
 horizonte = st.selectbox("Horizonte de análisis futuro", ["12 meses", "3 años", "5 años"])
-st.caption("El horizonte se registra como objetivo de diseño; todavía no existe un modelo calibrado para ese plazo.")
+st.caption("Horizonte aplicado a la simulación; no existe calibración actuarial para ese plazo.")
 
 st.subheader("2. Autorización por categoría")
 st.caption("Se revisarán automáticamente todas las categorías que autorices.")
@@ -75,3 +77,41 @@ if st.button("Evaluar categorías autorizadas", type="primary"):
             if resultado["estado"] == "Datos completos; modelo pendiente":
                 st.info("Datos descriptivos disponibles. No hay un modelo predictivo validado para esta categoría.")
     st.caption("Los resultados se calculan en esta sesión. Esta aplicación no implementa una base de datos de perfiles.")
+
+    st.divider()
+    st.subheader("Simulación de eventos futuros — PRISMA AI v0.6")
+    st.error(
+        "ATENCIÓN: los porcentajes siguientes se calculan con tasas base y "
+        "multiplicadores inventados para una demostración educativa. NO son "
+        "predicciones reales ni sirven para evaluar o asegurar personas."
+    )
+    meses = {"12 meses": 12, "3 años": 36, "5 años": 60}[horizonte]
+    simulaciones = simular_riesgos(perfil, meses, autorizaciones)
+    if simulaciones:
+        for simulacion in simulaciones:
+            st.markdown(f"### {simulacion['evento']}")
+            st.metric("Porcentaje hipotético del escenario", f"{simulacion['porcentaje']:.2f} %")
+            st.progress(min(simulacion["porcentaje"] / 100, 1.0))
+            st.caption("Factores usados: " + " | ".join(simulacion["factores"]))
+        st.caption(
+            "Método: P(≥1 evento) = 1 − exp(−tasa hipotética × meses/12). "
+            "Las tasas no proceden de registros reales y no han sido validadas."
+        )
+    else:
+        st.info("Autoriza Movilidad o Seguridad laboral para visualizar simulaciones.")
+
+    st.subheader("Orientación general sobre coberturas")
+    considerar, revisar = orientacion_coberturas(perfil, autorizaciones)
+    st.markdown("**Coberturas que podría ser útil consultar con una aseguradora:**")
+    for item in considerar:
+        st.write("• " + item)
+    if not considerar:
+        st.write("No hay categorías de exposición autorizadas para orientar la consulta.")
+    st.markdown("**Coberturas o complementos cuya pertinencia conviene revisar:**")
+    for item in revisar:
+        st.write("• " + item)
+    st.info(
+        "Este módulo NO determina qué cobertura debe negarse o excluirse a una persona. "
+        "La contratación, exclusiones y condiciones dependen de la póliza, la normativa "
+        "aplicable y una evaluación profesional individual."
+    )
